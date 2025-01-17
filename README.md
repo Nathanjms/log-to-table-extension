@@ -1,10 +1,12 @@
 # Laravel Log Viewer
 
-This is the README for your extension "laravel-log-viewer". After writing up a brief description, we recommend including the following sections.
+View your Laravel Logs in a easy-to-read table, with filters and pagination.
 
 ## Features
 
-- Format your laravel.log files into an easy to navigate and search table with the command `Laravel Log Viewer: View as Table`.
+- Easy to navigate table with pagination
+- Filters to search on date, severity and message
+- ...more to come (make an issue if you have a request!)
 
 For example if there is an image subfolder under your extension project workspace:
 
