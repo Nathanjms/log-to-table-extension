@@ -2,10 +2,17 @@
   "name": "laravel-log-viewer",
   "displayName": "Laravel Log Viewer",
   "description": "View your Laravel Log files in a easy-to-read table, with filters and pagination.",
-  "author": {
-    "name": "Nathan James"
-  },
+  "author": "Nathan James <nathan@nathanjms.co.uk>",
   "publisher": "nathanjames",
+  "homepage": "https://github.com/Nathanjms/laravel-log-viewer-extension#readme",
+  "bugs": {
+    "url": "https://github.com/Nathanjms/laravel-log-viewer-extension/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nathanjms/laravel-log-viewer-extension.git"
+  },
+  "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.96.0"
