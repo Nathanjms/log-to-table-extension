@@ -1,6 +1,6 @@
 {
-  "name": "laravel-log-viewer",
-  "displayName": "Laravel Log Viewer",
+  "name": "laravel-log-viewer-table",
+  "displayName": "Laravel Log Viewer Table",
   "description": "View your Laravel Log files in a easy-to-read table, with filters and pagination.",
   "author": "Nathan James <nathan@nathanjms.co.uk>",
   "publisher": "nathanjames",
