@@ -1,7 +1,10 @@
 {
   "name": "laravel-log-viewer",
   "displayName": "Laravel Log Viewer",
-  "description": "",
+  "description": "View your Laravel Log Files in a easy-to-read table, with filters and pagination.",
+  "author": {
+    "name": "Nathan James"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.96.0"
@@ -9,13 +12,13 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
   "main": "./out/extension.js",
+  "activationEvents": [],
   "contributes": {
     "commands": [
       {
-        "command": "laravel-log-viewer.helloWorld",
-        "title": "Hello World"
+        "command": "laravel-log-viewer.formatLogs",
+        "title": "Laravel Log Viewer: View as Table"
       }
     ]
   },
