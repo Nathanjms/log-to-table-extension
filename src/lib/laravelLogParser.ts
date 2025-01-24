@@ -10,7 +10,7 @@ const LARAVEL_LOG_REGEX_PATTERN =
 export async function parseLogs(
   logData: string,
   regexPattern?: string
-): Promise<{ logs: LogEntry[]; severities: string[] }> {
+): Promise<{ logs: LogEntry[]; severities: string[]; regexPattern: string }> {
   return new Promise((resolve, reject) => {
     try {
       // First split by new lines. A lot of logs are on one line, but some are not.
@@ -20,6 +20,7 @@ export async function parseLogs(
       const severitiesInLogFile: Map<string, boolean> = new Map();
 
       let entryIndex = 0; // Track this outside of the loop - we have split by line, but below we are splitting by date (ie. by log).
+      console.log({ logParsingRegex });
 
       for (let i = 0; i < logEntries.length; i++) {
         const entry = logEntries[i];
@@ -39,7 +40,11 @@ export async function parseLogs(
         }
       }
 
-      resolve({ logs: parsedEntries.reverse(), severities: Array.from(severitiesInLogFile.keys()).sort() });
+      resolve({
+        logs: parsedEntries.reverse(),
+        severities: Array.from(severitiesInLogFile.keys()).sort(),
+        regexPattern: logParsingRegex.source,
+      });
     } catch (error: any) {
       reject(error?.message ?? "An Error has Occurred");
     }

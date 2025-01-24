@@ -34,6 +34,7 @@ const logViewer = {
   regex: {
     patterns: [],
     test: "",
+    set: null,
   },
   get totalPages() {
     return Math.max(Math.ceil(this.filteredLogs.length / this.pageSize), 1);
@@ -59,8 +60,10 @@ const logViewer = {
           this.loadingError = message.message;
           return;
         }
+
         this.logs = message.logs;
         this.severities = message.severities;
+        this.regex.set = message.regexPattern ?? null;
         this.filteredLogs = [...this.logs];
       } else if (message.command === "loadStore") {
         this.regex.patterns = message.store.regexPatterns;

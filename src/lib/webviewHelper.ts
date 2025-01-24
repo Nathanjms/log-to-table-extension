@@ -74,9 +74,9 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
 
 export async function sendLogsToWebview(panel: vscode.WebviewPanel, content: string, regexPattern?: string) {
   try {
-    const { logs, severities } = await parseLogs(content, regexPattern);
+    const { logs, severities, regexPattern: parsedRegexPattern } = await parseLogs(content, regexPattern);
 
-    panel.webview.postMessage({ command: "loadLogs", logs, severities });
+    panel.webview.postMessage({ command: "loadLogs", logs, severities, regexPattern: parsedRegexPattern });
   } catch (error: any) {
     panel.webview.postMessage({ command: "loadLogs", error: true, message: error?.message || "Failed to parse logs" });
   }
