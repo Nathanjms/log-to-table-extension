@@ -1,11 +1,12 @@
-# Laravel Log Viewer
+# Log to Table (Laravel & More)
 
-View your Laravel Logs in a easy-to-read table, with filters and pagination.
+View your Log files in a easy-to-read table, with filters and pagination. Works with Laravel logs out the box, with the ability to add more regex patterns for other .log files.
 
 ## Features
 
 - Find and list your `.log` files automatically and open them directly in a table.
 - Easy to navigate table, with pagination and filters to search on date, severity and message
+- Add custom regex to match different log formats, no longer just Laravel!
 - ...more to come (make an issue if you have a request!)
 
 ### A button (and command) to open when you are in a `.log` file:
@@ -34,6 +35,16 @@ No known issues. This extension is new, so please create an issue if you encount
 - ...any suggestions made on GitHub (make an issue if you have a request!)
 
 ## Release Notes
+
+### 0.2.0
+
+- Rebranded the Laravel Log Viewer extension to 'Log to Table', now we support any `.log` file formats.
+- Added the ability to create your own regex patterns to match different Log Files, and save these new pattern matches.
+  - Related to issue https://github.com/Nathanjms/laravel-log-viewer-extension/issues/1
+  - We may want to have a set of 'defaults' here, let me know if you have feedback!
+- Added a refresh button to update the table when a new log is added to the file.
+- Severities are now a dropdown instead of freetext.
+- Added a manu bar button to open a .log file as a table.
 
 ### 0.1.1
 

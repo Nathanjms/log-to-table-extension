@@ -5,7 +5,7 @@ export default async function handle(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
 
   if (!editor) {
-    vscode.window.showErrorMessage("Please open a Laravel log file.");
+    vscode.window.showErrorMessage("Please open a .log file.");
     return;
   }
 
@@ -16,7 +16,7 @@ export default async function handle(context: vscode.ExtensionContext) {
     return;
   }
 
-  setUpPanel(context, "Laravel Log Viewer - " + document.fileName, () => getLogContent(editor));
+  setUpPanel(context, "Log to Table - " + document.fileName, () => getLogContent(editor));
 }
 
 function getLogContent(editor: vscode.TextEditor): string {

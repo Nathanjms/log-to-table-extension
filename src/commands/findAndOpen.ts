@@ -12,7 +12,7 @@ export default async function handle(context: vscode.ExtensionContext) {
   const fileName = path.basename(filePath);
 
   // Create and display the Webview
-  setUpPanel(context, "Laravel Log Viewer - " + fileName, () => getLogContent(filePath));
+  setUpPanel(context, "Log to Table - " + fileName, () => getLogContent(filePath));
 }
 
 export async function findLogFiles() {

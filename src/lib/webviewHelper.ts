@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { parseLogs } from "./laravelLogParser";
+import { parseLogs } from "./logParser";
 import { getStore, updateStore } from "../store";
 
 function generateWebviewContent(webview: vscode.Webview, context: vscode.ExtensionContext): string {
