@@ -33,7 +33,7 @@
         </thead>
         <tbody x-show="hasNoLogs">
           <tr>
-            <td style="text-align: center" colspan="3">No logs found.</td>
+            <td style="text-align: center" colspan="4">No logs found.</td>
           </tr>
         </tbody>
         <template x-if="!hasNoLogs">
@@ -93,7 +93,7 @@
         <div id="modal" style="width: 100%; height: 100%">
           <div style="display: flex; justify-content: space-between; margin-bottom: 10px">
             <div>
-              <button x-bind:disabled="copy.isLoading" @click="copyToClipboard(log.text)" title="Copy">Copy</button>
+              <button x-bind:disabled="copy.isLoading" @click="copyToClipboard(modal.text)" title="Copy">Copy</button>
               <button @click="() => (modal.wrap = !modal.wrap)" title="Wrap">
                 <span x-text="modal.wrap ? 'Disable' : 'Enable'"></span>
                 Wrap

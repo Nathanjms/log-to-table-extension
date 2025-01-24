@@ -30,7 +30,7 @@ const logViewer = {
     wrap: false,
   },
   get totalPages() {
-    return Math.ceil(this.filteredLogs.length / this.pageSize);
+    return Math.max(Math.ceil(this.filteredLogs.length / this.pageSize), 1);
   },
   get hasNoLogs() {
     return this.filteredLogs.length === 0;
@@ -55,7 +55,7 @@ const logViewer = {
       return (
         (!this.filters.timestamp || log.timestamp.includes(this.filters.timestamp)) &&
         (!this.filters.severity || log.severity.toLocaleUpperCase() === this.filters.severity.toLocaleUpperCase()) &&
-        (!this.filters.message || log.text.includes(this.filters.message))
+        (!this.filters.message || log.text.toLocaleUpperCase().includes(this.filters.message.toLocaleUpperCase()))
       );
     });
     this.page = 1;

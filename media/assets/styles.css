@@ -34,6 +34,7 @@ body {
     transform: rotate(360deg);
   }
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -83,7 +84,7 @@ input[type="text"] {
 
 input[type="text"]:disabled {
   cursor: not-allowed;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 button {
@@ -102,7 +103,7 @@ button.secondary {
 
 button:disabled {
   background-color: var(--vscode-button-background, #007acc);
-  opacity: 0.8;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
