@@ -16,8 +16,8 @@ export default async function handle(context: vscode.ExtensionContext) {
   const panel = setUpPanel(context, "Laravel Log Viewer - " + fileName);
 
   const logContent = fs.readFileSync(filePath, "utf8");
-  const logs = await parseLogs(logContent);
-  panel.webview.postMessage({ command: "loadLogs", logs });
+  const { logs, severities } = await parseLogs(logContent);
+  panel.webview.postMessage({ command: "loadLogs", logs, severities });
 }
 
 export async function findLogFiles() {

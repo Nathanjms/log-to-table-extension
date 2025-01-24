@@ -13,7 +13,12 @@
       <div>
         <form class="controls" @submit.prevent="applyFilters">
           <input x-bind:disabled="loading" type="text" placeholder="Timestamp" x-model="filters.timestamp" />
-          <input x-bind:disabled="loading" type="text" placeholder="Severity" x-model="filters.severity" />
+          <select x-bind:disabled="loading" x-model="filters.severity">
+            <option value="">All</option>
+            <template x-for="severity in severities" :key="severity">
+              <option x-text="severity"></option>
+            </template>
+          </select>
           <input x-bind:disabled="loading" type="text" placeholder="Message" x-model="filters.message" />
           <button x-bind:disabled="loading" @click="applyFilters()">Search</button>
         </form>
