@@ -10,6 +10,26 @@
   </head>
   <body>
     <div x-data="logViewer">
+      <template x-if="!loading && !hasNoLogs && regex.test && !regex.patterns[regex.test]">
+        <div class="card" style="margin-bottom: 10px">
+          <div>
+            <span style="margin-bottom: 10px;">This regex has returned logs! Provide a name below to save this format:</span>
+            <form style="margin-block: 10px;" @submit.prevent="saveTestRegex()">
+              <div style="display: flex; gap: 10px">
+                <input style="flex-grow: 1;" type="text" placeholder="Format" x-model="regex.testName" />
+                <button v-bind:disabled="!regex.testName || loading" type="submit">
+                  <span x-text="loading ? 'Loading...' : 'Apply'"></span>
+                </button>
+                <button type="button" @click="regex.test = ''">Cancel</button>
+              </div>
+              <span>
+                Is this a standard regex pattern for log files? Suggest it as a default option on the
+                <a href="https://github.com/Nathanjms/laravel-log-viewer-extension/issues/new?template=Blank+issue">Github Page</a>
+              </span>
+            </form>
+          </div>
+        </div>
+      </template>
         <form class="controls" @submit.prevent="applyFilters">
           <input x-bind:disabled="loading" type="text" placeholder="Timestamp" x-model="filters.timestamp" />
           <select x-bind:disabled="loading" x-model="filters.severity">
@@ -103,7 +123,14 @@
       <template x-if="!loading && hasNoLogs && noFiltersApplied">
         <div class="card" style="margin-top: 20px">
           <div>
-            <span style="margin-bottom: 10px;">Expecting to see logs here? The log file may not be in the expected format. Test with another format below:</span>
+            <span style="margin-bottom: 10px;">Expecting to see logs here? The log file may not be in the expected format</span>
+            <div style="margin-bottom: 10px;" x-show="Object.keys(regex.patterns).length > 0">
+              Choose from one of the Saved Formats:
+              <template x-for="(name, pattern) in regex.patterns" :key="pattern">
+                <button @click="changeFormat(pattern)"><span x-text="name"></span></button>
+              </template>
+            </div>
+            <span style="margin-bottom: 10px;">Test with another format below:</span>
             <form style="margin-block: 10px;" @submit.prevent="changeFormat()">
               <div style="display: flex; gap: 10px">
                 <input style="flex-grow: 1;" type="text" placeholder="Format" x-model="regex.test" />
@@ -120,13 +147,6 @@
                   <a href="https://github.com/Nathanjms/laravel-log-viewer-extension/issues/new?template=Blank+issue">Github Page</a>
               </div>
             </form>
-          </div>
-          <pre x-text="JSON.stringify(regex.patterns)"></pre>
-          <div x-show="Object.keys(regex.patterns).length > 0">
-            Or choose from one of your saved regex formats:
-            <template x-for="(name, pattern) in regex.patterns" :key="pattern">
-              <button @click="changeFormat(pattern)"><span x-text="name"></span></button>
-            </template>
           </div>
         </div>
       </template>

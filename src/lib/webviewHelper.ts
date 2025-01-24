@@ -51,7 +51,9 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
         sendLogsToWebview(panel, fetchLogs(), message.parameters.pattern);
       } else if (message.command === "addToStore") {
         getStore(context).then((store) => {
-          store.regexPatterns[message.parameters.regex] = message.parameters.regex;
+          console.log({ message, store });
+
+          store.regexPatterns[message.parameters.regex.pattern] = message.parameters.regex.name;
           updateStore(context, { regexPatterns: store.regexPatterns });
         });
       }

@@ -62,15 +62,7 @@ const logViewer = {
         this.logs = message.logs;
         this.severities = message.severities;
         this.filteredLogs = [...this.logs];
-
-        if (this.logs.length > 0 && this.regex.test) {
-          vscode.postMessage({ command: "addToStore", parameters: { regex: this.regex.test } });
-          this.regex.test = "";
-        }
       } else if (message.command === "loadStore") {
-        console.log(message.store);
-        console.log(message.store.regexPatterns);
-
         this.regex.patterns = message.store.regexPatterns;
       }
     });
@@ -122,8 +114,6 @@ const logViewer = {
     }
   },
   openModal(text) {
-    console.log({ text });
-
     this.modal.text = text;
     document.querySelector("dialog").showModal();
   },
@@ -131,20 +121,26 @@ const logViewer = {
     document.querySelector("dialog").close();
     this.modal.text = "";
   },
-  refresh() {
+  async refresh(parameters = {}) {
     this.loading = true;
     // Clear all filters:
     for (const key in this.filters) {
       this.filters[key] = "";
     }
-    vscode.postMessage({ type: "command", command: "refresh", parameters: {} });
+
+    vscode.postMessage({ type: "command", command: "refresh", parameters });
   },
   changeFormat(pattern = null) {
-    if (!pattern) {
-      // If no pattern, we're doing the test format:
-      vscode.postMessage({ type: "command", command: "refresh", parameters: { pattern: this.regex.test } });
-    } else {
-      vscode.postMessage({ type: "command", command: "refresh", parameters: { pattern } });
-    }
+    // Send a refresh request with the pattern as a parameter
+    this.refresh({ pattern: pattern || this.regex.test });
+  },
+  saveTestRegex() {
+    vscode.postMessage({
+      type: "command",
+      command: "addToStore",
+      parameters: { regex: { pattern: this.regex.test, name: this.regex.testName } },
+    });
+    this.regex.testName = "";
+    this.regex.test = "";
   },
 };
