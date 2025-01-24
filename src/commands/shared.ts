@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
+import { parseLogs } from "../lib/laravelLogParser";
 
 function generateWebviewContent(webview: vscode.Webview, context: vscode.ExtensionContext): string {
   let htmlContent = fs.readFileSync(path.join(context.extensionPath, "media", "index.html"), "utf8");
@@ -33,7 +34,7 @@ function generateWebviewContent(webview: vscode.Webview, context: vscode.Extensi
   return htmlContent;
 }
 
-export function setUpPanel(context: vscode.ExtensionContext, title: string) {
+export function setUpPanel(context: vscode.ExtensionContext, title: string, fetchLogs: () => string) {
   const panel = vscode.window.createWebviewPanel("logViewer", title, vscode.ViewColumn.One, {
     enableScripts: true,
     localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
@@ -44,7 +45,11 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string) {
 
   // On receive message, show it as info or error:
   panel.webview.onDidReceiveMessage((message) => {
-    if (message.type === "info") {
+    if (message.type === "command") {
+      if (message.command === "refresh") {
+        sendLogsToWebview(panel, fetchLogs());
+      }
+    } else if (message.type === "info") {
       vscode.window.showInformationMessage(message.message);
     } else if (message.type === "error") {
       vscode.window.showErrorMessage(message.message);
@@ -53,5 +58,13 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string) {
     }
   });
 
+  sendLogsToWebview(panel, fetchLogs());
+
   return panel;
+}
+
+export async function sendLogsToWebview(panel: vscode.WebviewPanel, content: string) {
+  const { logs, severities } = await parseLogs(content);
+
+  panel.webview.postMessage({ command: "loadLogs", logs, severities });
 }

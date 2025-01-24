@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { parseLogs } from "../lib/laravelLogParser";
 import { setUpPanel } from "./shared";
 
 export default async function handle(context: vscode.ExtensionContext) {
@@ -16,12 +15,15 @@ export default async function handle(context: vscode.ExtensionContext) {
     vscode.window.showErrorMessage("This extension works with log files only.");
     return;
   }
-  const panel = setUpPanel(context, "Laravel Log Viewer - " + document.fileName);
 
-  // Parse the log file:
+  setUpPanel(context, "Laravel Log Viewer - " + document.fileName, () => getLogContent(editor));
+}
 
-  // If the log file is huge, should we only get only get the most recent logs?
-  const { logs, severities } = await parseLogs(document.getText());
+function getLogContent(editor: vscode.TextEditor): string {
+  if (!editor || editor.document.languageId !== "log") {
+    vscode.window.showErrorMessage("Please open a .log file.");
+    return "";
+  }
 
-  panel.webview.postMessage({ command: "loadLogs", logs, severities });
+  return editor.document.getText();
 }
