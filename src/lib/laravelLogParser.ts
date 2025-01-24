@@ -1,36 +1,21 @@
-import * as vscode from "vscode";
 export interface LogEntry {
   timestamp: string;
   severity: string;
   text: string;
 }
 
-function getLogRegex() {
-  const config = vscode.workspace.getConfiguration("logViewer").get("regexPatterns") as {
-    name: string;
-    pattern: string;
-  }[];
+const LARAVEL_LOG_REGEX_PATTERN =
+  "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2})(.*?)\\](.*?(\\w+)\\.|.*?)((?<severity>\\w+)?: )(?<text>.*?)$";
 
-  console.log(config);
-
-  if (config.length === 0) {
-    throw new Error("No regex patterns configured");
-  }
-
-  return config[0].pattern;
-
-  // return config.get("customOptions");
-  const regex =
-    "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2})(.*?)\\](.*?(\\w+)\\.|.*?)((?<severity>\\w+)?: )(?<text>.*?)$";
-  return RegExp(regex, "i");
-}
-
-export async function parseLogs(logData: string): Promise<{ logs: LogEntry[]; severities: string[] }> {
+export async function parseLogs(
+  logData: string,
+  regexPattern?: string
+): Promise<{ logs: LogEntry[]; severities: string[] }> {
   return new Promise((resolve, reject) => {
     try {
       // First split by new lines. A lot of logs are on one line, but some are not.
       const logEntries = logData.split(/[\r\n]+/).filter((line) => line.trim() !== "");
-      const logParsingRegex = getLogRegex();
+      const logParsingRegex = new RegExp(regexPattern || LARAVEL_LOG_REGEX_PATTERN, "i");
       const parsedEntries: LogEntry[] = [];
       const severitiesInLogFile: Map<string, boolean> = new Map();
 

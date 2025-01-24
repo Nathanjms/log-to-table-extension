@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
 import { parseLogs } from "./laravelLogParser";
+import { getStore, updateStore } from "../store";
 
 function generateWebviewContent(webview: vscode.Webview, context: vscode.ExtensionContext): string {
   let htmlContent = fs.readFileSync(path.join(context.extensionPath, "media", "index.html"), "utf8");
@@ -47,7 +48,12 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
   panel.webview.onDidReceiveMessage((message) => {
     if (message.type === "command") {
       if (message.command === "refresh") {
-        sendLogsToWebview(panel, fetchLogs());
+        sendLogsToWebview(panel, fetchLogs(), message.parameters.pattern);
+      } else if (message.command === "addToStore") {
+        getStore(context).then((store) => {
+          store.regexPatterns[message.parameters.regex] = message.parameters.regex;
+          updateStore(context, { regexPatterns: store.regexPatterns });
+        });
       }
     } else if (message.type === "info") {
       vscode.window.showInformationMessage(message.message);
@@ -59,16 +65,22 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
   });
 
   sendLogsToWebview(panel, fetchLogs());
+  sendStoreToWebview(context, panel);
 
   return panel;
 }
 
-export async function sendLogsToWebview(panel: vscode.WebviewPanel, content: string) {
+export async function sendLogsToWebview(panel: vscode.WebviewPanel, content: string, regexPattern?: string) {
   try {
-    const { logs, severities } = await parseLogs(content);
+    const { logs, severities } = await parseLogs(content, regexPattern);
 
     panel.webview.postMessage({ command: "loadLogs", logs, severities });
   } catch (error: any) {
     panel.webview.postMessage({ command: "loadLogs", error: true, message: error?.message || "Failed to parse logs" });
   }
+}
+
+export async function sendStoreToWebview(context: vscode.ExtensionContext, panel: vscode.WebviewPanel) {
+  const store = await getStore(context);
+  panel.webview.postMessage({ command: "loadStore", store });
 }

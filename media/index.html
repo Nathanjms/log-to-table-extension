@@ -9,8 +9,7 @@
     <script src="${alpineUri}" defer></script></head>
   </head>
   <body>
-    <div x-data="logViewer()" x-init="init()">
-      <div>
+    <div x-data="logViewer">
         <form class="controls" @submit.prevent="applyFilters">
           <input x-bind:disabled="loading" type="text" placeholder="Timestamp" x-model="filters.timestamp" />
           <select x-bind:disabled="loading" x-model="filters.severity">
@@ -27,7 +26,6 @@
             </svg>
           </button>
         </form>
-      </div>
       <div x-show="loading" class="loading">
         <div class="spinner"></div>
         <span>Loading logs...</span>
@@ -102,6 +100,36 @@
         <span x-text="`Page ${page} of ${totalPages}`"></span>
         <button @click="nextPage" x-bind:disabled="page === totalPages">Next</button>
       </div>
+      <template x-if="!loading && hasNoLogs && noFiltersApplied">
+        <div class="card" style="margin-top: 20px">
+          <div>
+            <span style="margin-bottom: 10px;">Expecting to see logs here? The log file may not be in the expected format. Test with another format below:</span>
+            <form style="margin-block: 10px;" @submit.prevent="changeFormat()">
+              <div style="display: flex; gap: 10px">
+                <input style="flex-grow: 1;" type="text" placeholder="Format" x-model="regex.test" />
+                <button v-bind:disabled="!regex.test || loading" type="submit">
+                  <span x-text="loading ? 'Loading...' : 'Apply'"></span>
+                </button>
+              </div>
+              <small>
+                The Regex needs to have 3 groups: timestamp, severity, message. An example regex for a comma separated format would be
+                <i>^(?&lt;timestamp&gt;.*?),(?&lt;severity&gt;.*?),(?&lt;text&gt;.*?)$</i>
+              </small>
+              <div style="margin-top: 10px">
+                If you need more help here, or if this a Laravel Log, please raise an issue on the
+                  <a href="https://github.com/Nathanjms/laravel-log-viewer-extension/issues/new?template=Blank+issue">Github Page</a>
+              </div>
+            </form>
+          </div>
+          <pre x-text="JSON.stringify(regex.patterns)"></pre>
+          <div x-show="Object.keys(regex.patterns).length > 0">
+            Or choose from one of your saved regex formats:
+            <template x-for="(name, pattern) in regex.patterns" :key="pattern">
+              <button @click="changeFormat(pattern)"><span x-text="name"></span></button>
+            </template>
+          </div>
+        </div>
+      </template>
       <dialog>
         <div id="modal" style="width: 100%; height: 100%">
           <div style="display: flex; justify-content: space-between; margin-bottom: 10px">

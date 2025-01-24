@@ -31,6 +31,10 @@ const logViewer = {
     text: "",
     wrap: false,
   },
+  regex: {
+    patterns: [],
+    test: "",
+  },
   get totalPages() {
     return Math.max(Math.ceil(this.filteredLogs.length / this.pageSize), 1);
   },
@@ -41,6 +45,9 @@ const logViewer = {
     const start = (this.page - 1) * this.pageSize;
     const end = start + this.pageSize;
     return this.filteredLogs.slice(start, end);
+  },
+  get noFiltersApplied() {
+    return Object.values(this.filters).every((value) => !value);
   },
   async init() {
     window.addEventListener("message", (event) => {
@@ -55,6 +62,16 @@ const logViewer = {
         this.logs = message.logs;
         this.severities = message.severities;
         this.filteredLogs = [...this.logs];
+
+        if (this.logs.length > 0 && this.regex.test) {
+          vscode.postMessage({ command: "addToStore", parameters: { regex: this.regex.test } });
+          this.regex.test = "";
+        }
+      } else if (message.command === "loadStore") {
+        console.log(message.store);
+        console.log(message.store.regexPatterns);
+
+        this.regex.patterns = message.store.regexPatterns;
       }
     });
   },
@@ -120,6 +137,14 @@ const logViewer = {
     for (const key in this.filters) {
       this.filters[key] = "";
     }
-    vscode.postMessage({ type: "command", command: "refresh" });
+    vscode.postMessage({ type: "command", command: "refresh", parameters: {} });
+  },
+  changeFormat(pattern = null) {
+    if (!pattern) {
+      // If no pattern, we're doing the test format:
+      vscode.postMessage({ type: "command", command: "refresh", parameters: { pattern: this.regex.test } });
+    } else {
+      vscode.postMessage({ type: "command", command: "refresh", parameters: { pattern } });
+    }
   },
 };
