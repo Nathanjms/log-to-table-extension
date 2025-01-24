@@ -35,6 +35,10 @@ No known issues. This extension is new, so please create an issue if you encount
 
 ## Release Notes
 
+### 0.1.1
+
+- Fix README gifs not loading
+
 ### 0.1.0
 
 - Added a second command which finds you `.log` files for you and let's you open any of them.
