@@ -66,6 +66,10 @@ td {
   flex-grow: 1;
 }
 
+.controls select {
+  flex-grow: 1;
+}
+
 .pagination {
   margin-top: 10px;
   display: flex;
