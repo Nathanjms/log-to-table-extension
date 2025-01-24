@@ -18,6 +18,7 @@ const logViewer = {
   severities: [],
   filteredLogs: [],
   loading: true,
+  loadingError: "",
   page: 1,
   pageSize: 50,
   indexToShow: null,
@@ -30,6 +31,11 @@ const logViewer = {
     text: "",
     wrap: false,
   },
+  regex: {
+    patterns: [],
+    test: "",
+    set: null,
+  },
   get totalPages() {
     return Math.max(Math.ceil(this.filteredLogs.length / this.pageSize), 1);
   },
@@ -41,14 +47,27 @@ const logViewer = {
     const end = start + this.pageSize;
     return this.filteredLogs.slice(start, end);
   },
+  get noFiltersApplied() {
+    return Object.values(this.filters).every((value) => !value);
+  },
   async init() {
     window.addEventListener("message", (event) => {
       const message = event.data;
       if (message.command === "loadLogs") {
+        this.loading = false;
+        if (message.error) {
+          // Set error message?
+          this.loadingError = message.message;
+          return;
+        }
+
         this.logs = message.logs;
         this.severities = message.severities;
+        this.regex.set = message.regexPattern ?? null;
         this.filteredLogs = [...this.logs];
-        this.loading = false;
+        console.log(message.regexPattern);
+      } else if (message.command === "loadStore") {
+        this.regex.patterns = message.store.regexPatterns;
       }
     });
   },
@@ -99,8 +118,6 @@ const logViewer = {
     }
   },
   openModal(text) {
-    console.log({ text });
-
     this.modal.text = text;
     document.querySelector("dialog").showModal();
   },
@@ -108,12 +125,33 @@ const logViewer = {
     document.querySelector("dialog").close();
     this.modal.text = "";
   },
-  refresh() {
+  async refresh(parameters = {}) {
     this.loading = true;
     // Clear all filters:
     for (const key in this.filters) {
       this.filters[key] = "";
     }
-    vscode.postMessage({ type: "command", command: "refresh" });
+
+    vscode.postMessage({ type: "command", command: "refresh", parameters });
+  },
+  changeFormat(pattern = null) {
+    // Send a refresh request with the pattern as a parameter
+    this.refresh({ pattern: pattern || this.regex.test });
+  },
+  saveTestRegex() {
+    vscode.postMessage({
+      type: "command",
+      command: "addToStore",
+      parameters: { regex: { pattern: this.regex.test, name: this.regex.testName } },
+    });
+    this.regex.testName = "";
+    this.regex.test = "";
+  },
+  deletePattern(pattern) {
+    vscode.postMessage({
+      type: "command",
+      command: "deleteFromStore",
+      parameters: { pattern },
+    });
   },
 };

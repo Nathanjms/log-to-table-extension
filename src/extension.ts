@@ -12,6 +12,8 @@ export function activate(context: vscode.ExtensionContext) {
   // The commandId parameter must match the command field in package.json
   context.subscriptions.push(vscode.commands.registerCommand("log-viewer.formatLogs", () => formatLogs(context)));
   context.subscriptions.push(vscode.commands.registerCommand("log-viewer.findAndOpen", () => findAndOpen(context)));
+
+  context.globalState.setKeysForSync(["store"]);
 }
 
 // This method is called when your extension is deactivated

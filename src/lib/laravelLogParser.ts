@@ -1,55 +1,21 @@
 export interface LogEntry {
   timestamp: string;
   severity: string;
-  environment: string;
   text: string;
 }
 
-export const LogStatuses = Object.freeze([
-  "debug",
-  "info",
-  "notice",
-  "warning",
-  "error",
-  "critical",
-  "alert",
-  "emergency",
-  "processing",
-  "processed",
-  "failed",
-]);
+const LARAVEL_LOG_REGEX_PATTERN =
+  "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2})(.*?)\\](.*?(\\w+)\\.|.*?)((?<severity>\\w+)?: )(?<text>.*?)$";
 
-// Match on the date, optionally with a space or T, and the time, and optionally the microseconds and timezone offset.
-//  ie. [2021-01-01 00:00:00.000000+00:00] or a simple match [2021-01-01 00:00:00]
-const dateTimestampRegex = /^\[(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2})\.?(\d{6})?([\+\-]\d\d:\d\d)?\]/;
-// Match on the environment and the severity, ie. local.INFO:
-const environmentRegex = /(.*?(\\w+)\\.|.*?)/;
-// The severities and the colon, done as a group ie: /(INFO|DEBUG|ERROR|WARNING):/
-const severityRegex = "(" + LogStatuses.join("|") + ")?: ";
-// The log text, ie: "This is the log text"
-const logTextRegex = /(.*?)$/;
-
-/**
- * This pattern, used for processing Laravel logs, returns these results:
- * $matches[0] - the full log line being tested.
- * $matches[1] - full timestamp between the square brackets (includes microseconds and timezone offset)
- * $matches[2] - timestamp microseconds, if available
- * $matches[3] - timestamp timezone offset, if available
- * $matches[4] - contents between timestamp and the severity level
- * $matches[5] - environment (local, production, etc)
- * $matches[6] - log severity (info, debug, error, etc)
- * $matches[7] - the log text, the rest of the text.
- */
-const logParsingRegex = new RegExp(
-  dateTimestampRegex.source + environmentRegex.source + severityRegex + logTextRegex.source,
-  "i"
-);
-
-export async function parseLogs(logData: string): Promise<{ logs: LogEntry[]; severities: string[] }> {
+export async function parseLogs(
+  logData: string,
+  regexPattern?: string
+): Promise<{ logs: LogEntry[]; severities: string[]; regexPattern: string }> {
   return new Promise((resolve, reject) => {
     try {
       // First split by new lines. A lot of logs are on one line, but some are not.
       const logEntries = logData.split(/[\r\n]+/).filter((line) => line.trim() !== "");
+      const logParsingRegex = new RegExp(regexPattern || LARAVEL_LOG_REGEX_PATTERN, "i");
       const parsedEntries: LogEntry[] = [];
       const severitiesInLogFile: Map<string, boolean> = new Map();
 
@@ -57,38 +23,27 @@ export async function parseLogs(logData: string): Promise<{ logs: LogEntry[]; se
 
       for (let i = 0; i < logEntries.length; i++) {
         const entry = logEntries[i];
-        // Skip rows that don't start with a date when it is the first entry
-
-        if (entryIndex === 0 && !entry.match(dateTimestampRegex)) {
-          continue;
-        }
-
-        // If it matches the date regex, it is a new entry)
-        let timestamp = entry.match(dateTimestampRegex)?.[1] ?? null;
-
-        if (timestamp) {
-          // If we have found a timestamp match, lets call the complicated variable match
-          let matches = entry.match(logParsingRegex);
-          let severity = matches?.[6] ?? "UNKNOWN";
+        let match = entry.match(logParsingRegex);
+        if (match) {
+          const { timestamp, severity = "UNKNOWN", text = "" } = match.groups ?? {};
 
           if (!severitiesInLogFile.has(severity)) {
             severitiesInLogFile.set(severity, true);
           }
 
-          parsedEntries[entryIndex] = {
-            timestamp,
-            environment: matches?.[5] ?? "unknown",
-            severity: matches?.[6] ?? "unknown",
-            text: matches?.[7] ?? "",
-          };
+          parsedEntries[entryIndex] = { timestamp, severity, text };
           entryIndex++;
-        } else {
+        } else if (entryIndex > 0) {
           // Otherwise, it is part of the message, so add it to the message of the previous entry
           parsedEntries[entryIndex - 1].text += "\n" + entry;
         }
       }
 
-      resolve({ logs: parsedEntries.reverse(), severities: Array.from(severitiesInLogFile.keys()).sort() });
+      resolve({
+        logs: parsedEntries.reverse(),
+        severities: Array.from(severitiesInLogFile.keys()).sort(),
+        regexPattern: logParsingRegex.source,
+      });
     } catch (error: any) {
       reject(error?.message ?? "An Error has Occurred");
     }

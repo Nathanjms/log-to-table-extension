@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { setUpPanel } from "./shared";
+import { setUpPanel } from "../lib/webviewHelper";
 
 export default async function handle(context: vscode.ExtensionContext) {
   const filePath = await findLogFiles();

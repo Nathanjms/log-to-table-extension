@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { setUpPanel } from "./shared";
+import { setUpPanel } from "../lib/webviewHelper";
 
 export default async function handle(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
