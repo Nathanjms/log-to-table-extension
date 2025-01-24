@@ -108,4 +108,12 @@ const logViewer = {
     document.querySelector("dialog").close();
     this.modal.text = "";
   },
+  refresh() {
+    this.loading = true;
+    // Clear all filters:
+    for (const key in this.filters) {
+      this.filters[key] = "";
+    }
+    vscode.postMessage({ type: "command", command: "refresh" });
+  },
 };

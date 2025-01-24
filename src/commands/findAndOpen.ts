@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { parseLogs } from "../lib/laravelLogParser";
 import { setUpPanel } from "./shared";
 
 export default async function handle(context: vscode.ExtensionContext) {
@@ -13,11 +12,7 @@ export default async function handle(context: vscode.ExtensionContext) {
   const fileName = path.basename(filePath);
 
   // Create and display the Webview
-  const panel = setUpPanel(context, "Laravel Log Viewer - " + fileName);
-
-  const logContent = fs.readFileSync(filePath, "utf8");
-  const { logs, severities } = await parseLogs(logContent);
-  panel.webview.postMessage({ command: "loadLogs", logs, severities });
+  setUpPanel(context, "Laravel Log Viewer - " + fileName, () => getLogContent(filePath));
 }
 
 export async function findLogFiles() {
@@ -34,4 +29,8 @@ export async function findLogFiles() {
   );
 
   return selectedFile;
+}
+
+function getLogContent(filePath: string): string {
+  return fs.readFileSync(filePath, "utf8");
 }
