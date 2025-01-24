@@ -26,14 +26,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "laravel-log-viewer.formatLogs",
+        "command": "log-viewer.formatLogs",
         "title": "Laravel Log Viewer: View as Table"
       },
       {
-        "command": "laravel-log-viewer.findAndOpen",
+        "command": "log-viewer.findAndOpen",
         "title": "Laravel Log Viewer: Find and Open Log"
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "log-viewer.formatLogs",
+          "when": "resourceLangId == log",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
