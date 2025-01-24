@@ -14,7 +14,7 @@
     "url": "git+https://github.com/Nathanjms/laravel-log-viewer-extension.git"
   },
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.93.0"
   },
