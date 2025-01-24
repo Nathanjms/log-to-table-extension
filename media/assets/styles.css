@@ -66,6 +66,10 @@ td {
   flex-grow: 1;
 }
 
+.controls select {
+  flex-grow: 1;
+}
+
 .pagination {
   margin-top: 10px;
   display: flex;
@@ -83,6 +87,19 @@ input[type="text"] {
 }
 
 input[type="text"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+select {
+  padding: 10px;
+  border: 1px solid var(--vscode-editorLineNumber-foreground, #ccc);
+  border-radius: 4px;
+  background-color: var(--vscode-input-background, #f3f3f3);
+  color: var(--vscode-input-foreground, #333);
+}
+
+select:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }

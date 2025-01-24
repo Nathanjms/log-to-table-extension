@@ -21,7 +21,7 @@ export default async function handle(context: vscode.ExtensionContext) {
   // Parse the log file:
 
   // If the log file is huge, should we only get only get the most recent logs?
-  const logs = await parseLogs(document.getText());
+  const { logs, severities } = await parseLogs(document.getText());
 
-  panel.webview.postMessage({ command: "loadLogs", logs });
+  panel.webview.postMessage({ command: "loadLogs", logs, severities });
 }

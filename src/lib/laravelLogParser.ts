@@ -45,12 +45,13 @@ const logParsingRegex = new RegExp(
   "i"
 );
 
-export async function parseLogs(logData: string): Promise<LogEntry[]> {
+export async function parseLogs(logData: string): Promise<{ logs: LogEntry[]; severities: string[] }> {
   return new Promise((resolve, reject) => {
     try {
       // First split by new lines. A lot of logs are on one line, but some are not.
       const logEntries = logData.split(/[\r\n]+/).filter((line) => line.trim() !== "");
       const parsedEntries: LogEntry[] = [];
+      const severitiesInLogFile: Map<string, boolean> = new Map();
 
       let entryIndex = 0; // Track this outside of the loop - we have split by line, but below we are splitting by date (ie. by log).
 
@@ -68,6 +69,11 @@ export async function parseLogs(logData: string): Promise<LogEntry[]> {
         if (timestamp) {
           // If we have found a timestamp match, lets call the complicated variable match
           let matches = entry.match(logParsingRegex);
+          let severity = matches?.[6] ?? "UNKNOWN";
+
+          if (!severitiesInLogFile.has(severity)) {
+            severitiesInLogFile.set(severity, true);
+          }
 
           parsedEntries[entryIndex] = {
             timestamp,
@@ -82,7 +88,7 @@ export async function parseLogs(logData: string): Promise<LogEntry[]> {
         }
       }
 
-      resolve(parsedEntries.reverse());
+      resolve({ logs: parsedEntries.reverse(), severities: Array.from(severitiesInLogFile.keys()).sort() });
     } catch (error: any) {
       reject(error?.message ?? "An Error has Occurred");
     }

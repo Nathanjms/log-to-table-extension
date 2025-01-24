@@ -15,6 +15,7 @@ const vscode = acquireVsCodeApi();
 const logViewer = {
   logs: [],
   filters: { timestamp: "", severity: "", message: "" },
+  severities: [],
   filteredLogs: [],
   loading: true,
   page: 1,
@@ -45,6 +46,7 @@ const logViewer = {
       const message = event.data;
       if (message.command === "loadLogs") {
         this.logs = message.logs;
+        this.severities = message.severities;
         this.filteredLogs = [...this.logs];
         this.loading = false;
       }
