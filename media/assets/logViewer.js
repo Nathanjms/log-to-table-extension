@@ -18,6 +18,7 @@ const logViewer = {
   severities: [],
   filteredLogs: [],
   loading: true,
+  loadingError: "",
   page: 1,
   pageSize: 50,
   indexToShow: null,
@@ -45,10 +46,15 @@ const logViewer = {
     window.addEventListener("message", (event) => {
       const message = event.data;
       if (message.command === "loadLogs") {
+        this.loading = false;
+        if (message.error) {
+          // Set error message?
+          this.loadingError = message.message;
+          return;
+        }
         this.logs = message.logs;
         this.severities = message.severities;
         this.filteredLogs = [...this.logs];
-        this.loading = false;
       }
     });
   },

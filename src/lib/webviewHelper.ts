@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { parseLogs } from "../lib/laravelLogParser";
+import { parseLogs } from "./laravelLogParser";
 
 function generateWebviewContent(webview: vscode.Webview, context: vscode.ExtensionContext): string {
   let htmlContent = fs.readFileSync(path.join(context.extensionPath, "media", "index.html"), "utf8");
@@ -64,7 +64,11 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
 }
 
 export async function sendLogsToWebview(panel: vscode.WebviewPanel, content: string) {
-  const { logs, severities } = await parseLogs(content);
+  try {
+    const { logs, severities } = await parseLogs(content);
 
-  panel.webview.postMessage({ command: "loadLogs", logs, severities });
+    panel.webview.postMessage({ command: "loadLogs", logs, severities });
+  } catch (error: any) {
+    panel.webview.postMessage({ command: "loadLogs", error: true, message: error?.message || "Failed to parse logs" });
+  }
 }

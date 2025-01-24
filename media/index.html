@@ -32,6 +32,9 @@
         <div class="spinner"></div>
         <span>Loading logs...</span>
       </div>
+      <div x-show="!loading && loadingError">
+        <span x-text="loadingError"></span>
+      </div>
       <table x-show="!loading">
         <thead>
           <tr>
