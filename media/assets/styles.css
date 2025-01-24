@@ -55,6 +55,11 @@ td {
   border: 1px solid var(--vscode-editorLineNumber-foreground, #ccc);
 }
 
+table.small td,
+table.small th {
+  padding: 2px;
+}
+
 .controls {
   margin-bottom: 10px;
   display: flex;
@@ -62,10 +67,7 @@ td {
   flex-wrap: wrap;
 }
 
-.controls input[type="text"] {
-  flex-grow: 1;
-}
-
+.controls input[type="text"],
 .controls select {
   flex-grow: 1;
 }
@@ -116,6 +118,11 @@ button {
 button.secondary {
   background-color: var(--vscode-button-secondaryBackground, #ccc);
   color: var(--vscode-button-secondaryForeground, #333);
+}
+
+button.small {
+  padding: 2px 5px;
+  /* font-size: 12px; */
 }
 
 button:disabled {

@@ -16,7 +16,7 @@
             <span style="margin-bottom: 10px;">This regex has returned logs! Provide a name below to save this format:</span>
             <form style="margin-block: 10px;" @submit.prevent="saveTestRegex()">
               <div style="display: flex; gap: 10px">
-                <input style="flex-grow: 1;" type="text" placeholder="Format" x-model="regex.testName" />
+                <input style="flex-grow: 1;" type="text" placeholder="Regex Name" x-model="regex.testName" />
                 <button v-bind:disabled="!regex.testName || loading" type="submit">
                   <span x-text="loading ? 'Loading...' : 'Apply'"></span>
                 </button>
@@ -40,7 +40,7 @@
           </select>
           <input x-bind:disabled="loading" type="text" placeholder="Message" x-model="filters.message" />
           <button x-bind:disabled="loading" @click="applyFilters()">Search</button>
-          <button x-bind:disabled="loading" @click="refresh(regex.set)" title="refresh">
+          <button x-bind:disabled="loading" @click="refresh({ pattern: regex.set })" title="refresh">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
@@ -126,9 +126,25 @@
             <span>Expecting to see logs here? The log file may not be in the expected format</span>
             <div style="margin-top: 10px;" x-show="Object.keys(regex.patterns).length > 0">
               Choose from one of the Saved Formats:
-              <template x-for="(name, pattern) in regex.patterns" :key="pattern">
-                <button style="margin-block: 5px;" @click="changeFormat(pattern)"><span x-text="name"></span></button>
-              </template>
+              <table class="small">
+                <thead>
+                  <th>Name</th>
+                  <th>Actions</th>
+                </thead>
+                <tbody>
+                  <template x-for="(name, pattern) in regex.patterns" :key="pattern">
+                    <tr>
+                      <td x-text="name"></td>
+                      <td>
+                        <div style="text-align: end;">
+                          <button class="small" @click="changeFormat(pattern)" title="Apply">Apply</button>
+                          <button class="small secondary" @click="deletePattern(pattern)" title="Delete">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
             </div>
             <hr />
             <span style="margin-bottom: 10px;">Alternatively, you can test with another format below:</span>

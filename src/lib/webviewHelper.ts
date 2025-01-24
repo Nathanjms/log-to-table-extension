@@ -55,6 +55,13 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
 
           store.regexPatterns[message.parameters.regex.pattern] = message.parameters.regex.name;
           updateStore(context, { regexPatterns: store.regexPatterns });
+          sendStoreToWebview(context, panel);
+        });
+      } else if (message.command === "deleteFromStore") {
+        getStore(context).then((store) => {
+          delete store.regexPatterns[message.parameters.pattern];
+          updateStore(context, { regexPatterns: store.regexPatterns });
+          sendStoreToWebview(context, panel);
         });
       }
     } else if (message.type === "info") {

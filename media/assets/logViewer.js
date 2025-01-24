@@ -65,6 +65,7 @@ const logViewer = {
         this.severities = message.severities;
         this.regex.set = message.regexPattern ?? null;
         this.filteredLogs = [...this.logs];
+        console.log(message.regexPattern);
       } else if (message.command === "loadStore") {
         this.regex.patterns = message.store.regexPatterns;
       }
@@ -145,5 +146,12 @@ const logViewer = {
     });
     this.regex.testName = "";
     this.regex.test = "";
+  },
+  deletePattern(pattern) {
+    vscode.postMessage({
+      type: "command",
+      command: "deleteFromStore",
+      parameters: { pattern },
+    });
   },
 };

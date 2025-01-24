@@ -20,7 +20,6 @@ export async function parseLogs(
       const severitiesInLogFile: Map<string, boolean> = new Map();
 
       let entryIndex = 0; // Track this outside of the loop - we have split by line, but below we are splitting by date (ie. by log).
-      console.log({ logParsingRegex });
 
       for (let i = 0; i < logEntries.length; i++) {
         const entry = logEntries[i];
