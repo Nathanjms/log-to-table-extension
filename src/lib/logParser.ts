@@ -1,11 +1,11 @@
+import { LARAVEL_LOG_REGEX_PATTERN, MAX_BYTES_TO_READ } from "../constants";
+import fs from "fs";
+
 export interface LogEntry {
   timestamp: string;
   severity: string;
   text: string;
 }
-
-const LARAVEL_LOG_REGEX_PATTERN =
-  "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2})(.*?)\\](.*?(\\w+)\\.|.*?)((?<severity>\\w+)?: )(?<text>.*?)$";
 
 export async function parseLogs(
   logData: string,
@@ -48,4 +48,32 @@ export async function parseLogs(
       reject(error?.message ?? "An Error has Occurred");
     }
   });
+}
+
+export interface LogContent {
+  contents: string;
+  fileSize: number;
+}
+
+export function getLogContent(filePath: string): LogContent {
+  // Open the file
+  const fd = fs.openSync(filePath, "r");
+
+  // Get the file stats
+  const stats = fs.fstatSync(fd);
+
+  // Calculate the position to start reading from the end
+  const position = stats.size - MAX_BYTES_TO_READ; // Read the last MAX_BYTES_TO_READ bytes
+
+  // Read from the calculated position
+  const buffer = Buffer.alloc(MAX_BYTES_TO_READ);
+  fs.readSync(fd, buffer, 0, MAX_BYTES_TO_READ, position);
+
+  // Close the file descriptor
+  fs.closeSync(fd);
+
+  return {
+    contents: buffer.toString(),
+    fileSize: stats.size,
+  };
 }

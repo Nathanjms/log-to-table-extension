@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
 import { setUpPanel } from "../lib/webviewHelper";
+import { getLogContent } from "../lib/logParser";
 
 export default async function handle(context: vscode.ExtensionContext) {
   const filePath = await findLogFiles();
@@ -29,8 +30,4 @@ export async function findLogFiles() {
   );
 
   return selectedFile;
-}
-
-function getLogContent(filePath: string): string {
-  return fs.readFileSync(filePath, "utf8");
 }

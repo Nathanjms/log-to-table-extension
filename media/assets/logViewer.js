@@ -19,6 +19,8 @@ const logViewer = {
   filteredLogs: [],
   loading: true,
   loadingError: "",
+  fileSize: 0,
+  limitInBytes: 0,
   page: 1,
   pageSize: 50,
   indexToShow: null,
@@ -50,6 +52,9 @@ const logViewer = {
   get noFiltersApplied() {
     return Object.values(this.filters).every((value) => !value);
   },
+  get hasMore() {
+    return this.fileSize > this.limitInBytes;
+  },
   async init() {
     window.addEventListener("message", (event) => {
       const message = event.data;
@@ -65,7 +70,8 @@ const logViewer = {
         this.severities = message.severities;
         this.regex.set = message.regexPattern ?? null;
         this.filteredLogs = [...this.logs];
-        console.log(message.regexPattern);
+        this.limitInBytes = message.limitInBytes;
+        this.fileSize = message.fileSize;
       } else if (message.command === "loadStore") {
         this.regex.patterns = message.store.regexPatterns;
       }
@@ -153,5 +159,15 @@ const logViewer = {
       command: "deleteFromStore",
       parameters: { pattern },
     });
+  },
+  bytesToHumanReadable(inputBytes) {
+    let bytes = inputBytes;
+    const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    let unitIndex = 0;
+    while (bytes >= 1024) {
+      bytes /= 1024;
+      unitIndex++;
+    }
+    return `${bytes.toFixed(2)} ${units[unitIndex]}`;
   },
 };

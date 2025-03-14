@@ -2,6 +2,13 @@
 
 View your Log files in a easy-to-read table, with filters and pagination. Works with Laravel logs out the box, with the ability to add more regex patterns for other .log files.
 
+## Commands:
+
+- `Log to Table: Find and Open Log`
+  - Can be ran from anywhere. This command identifies any `.log` files and lists them, then lets you pick one to open.
+- `Log to Table: View as Table`
+  - Can be ran from any `.log` file. This command will open the file in the table format.
+
 ## Features
 
 - Find and list your `.log` files automatically and open them directly in a table.
@@ -36,6 +43,11 @@ No known issues. This extension is new, so please create an issue if you encount
 
 ## Release Notes
 
+### 0.2.1
+
+- Updated to only load up to 5MB of a log file, ordered latest first, to ensure the file is load-able.
+  - Perhaps this could be overridden in the settings in future?
+
 ### 0.2.0
 
 - Rebranded the Laravel Log Viewer extension to 'Log to Table', now we support any `.log` file formats.
@@ -63,3 +75,11 @@ No known issues. This extension is new, so please create an issue if you encount
 Initial release of the extension. Command to open a laravel .log file in a table format.
 
 ---
+
+## Development
+
+When in VS Code, use the built-in Run and Debug functionality to run the `Run Extension` task, to test.
+
+## Publishing
+
+1. Run `npx @vscode/vsce publish` to publish the extension.

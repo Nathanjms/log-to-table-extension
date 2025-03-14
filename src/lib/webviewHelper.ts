@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import fs from "fs";
 import path from "path";
-import { parseLogs } from "./logParser";
+import { LogContent, parseLogs } from "./logParser";
 import { getStore, updateStore } from "../store";
+import { MAX_BYTES_TO_READ } from "../constants";
 
 function generateWebviewContent(webview: vscode.Webview, context: vscode.ExtensionContext): string {
   let htmlContent = fs.readFileSync(path.join(context.extensionPath, "media", "index.html"), "utf8");
@@ -35,7 +36,7 @@ function generateWebviewContent(webview: vscode.Webview, context: vscode.Extensi
   return htmlContent;
 }
 
-export function setUpPanel(context: vscode.ExtensionContext, title: string, fetchLogs: () => string) {
+export function setUpPanel(context: vscode.ExtensionContext, title: string, fetchLogs: () => LogContent) {
   const panel = vscode.window.createWebviewPanel("logViewer", title, vscode.ViewColumn.One, {
     enableScripts: true,
     localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
@@ -48,7 +49,7 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
   panel.webview.onDidReceiveMessage((message) => {
     if (message.type === "command") {
       if (message.command === "refresh") {
-        sendLogsToWebview(panel, fetchLogs(), message.parameters.pattern);
+        sendLogsToWebview(panel, fetchLogs().contents, message.parameters.pattern);
       } else if (message.command === "addToStore") {
         getStore(context).then((store) => {
           console.log({ message, store });
@@ -73,17 +74,30 @@ export function setUpPanel(context: vscode.ExtensionContext, title: string, fetc
     }
   });
 
-  sendLogsToWebview(panel, fetchLogs());
+  const logs = fetchLogs();
+  sendLogsToWebview(panel, logs.contents, undefined, logs.fileSize);
   sendStoreToWebview(context, panel);
 
   return panel;
 }
 
-export async function sendLogsToWebview(panel: vscode.WebviewPanel, content: string, regexPattern?: string) {
+export async function sendLogsToWebview(
+  panel: vscode.WebviewPanel,
+  content: string,
+  regexPattern: string | undefined = undefined,
+  fileSize: number = 0
+) {
   try {
     const { logs, severities, regexPattern: parsedRegexPattern } = await parseLogs(content, regexPattern);
 
-    panel.webview.postMessage({ command: "loadLogs", logs, severities, regexPattern: parsedRegexPattern });
+    panel.webview.postMessage({
+      command: "loadLogs",
+      logs,
+      severities,
+      regexPattern: parsedRegexPattern,
+      fileSize,
+      limitInBytes: MAX_BYTES_TO_READ,
+    });
   } catch (error: any) {
     panel.webview.postMessage({ command: "loadLogs", error: true, message: error?.message || "Failed to parse logs" });
   }

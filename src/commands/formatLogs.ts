@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import { setUpPanel } from "../lib/webviewHelper";
+import path from "path";
+import { getLogContent } from "../lib/logParser";
 
 export default async function handle(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
@@ -16,14 +18,7 @@ export default async function handle(context: vscode.ExtensionContext) {
     return;
   }
 
-  setUpPanel(context, "Log to Table - " + document.fileName, () => getLogContent(editor));
-}
+  const fileName = path.basename(document.fileName);
 
-function getLogContent(editor: vscode.TextEditor): string {
-  if (!editor || editor.document.languageId !== "log") {
-    vscode.window.showErrorMessage("Please open a .log file.");
-    return "";
-  }
-
-  return editor.document.getText();
+  setUpPanel(context, "Log to Table - " + document.fileName, () => getLogContent(fileName));
 }
