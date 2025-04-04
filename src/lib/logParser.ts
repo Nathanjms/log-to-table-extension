@@ -63,7 +63,7 @@ export function getLogContent(filePath: string): LogContent {
   const stats = fs.fstatSync(fd);
 
   // Calculate the position to start reading from the end
-  const position = stats.size - MAX_BYTES_TO_READ; // Read the last MAX_BYTES_TO_READ bytes
+  const position = stats.size - MAX_BYTES_TO_READ > 0 ? stats.size - MAX_BYTES_TO_READ : 0;
 
   // Read from the calculated position
   const buffer = Buffer.alloc(MAX_BYTES_TO_READ);

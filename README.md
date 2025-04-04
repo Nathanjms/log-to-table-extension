@@ -43,6 +43,10 @@ No known issues. This extension is new, so please create an issue if you encount
 
 ## Release Notes
 
+### 0.2.2
+
+- Fixed a bug where a small log file would fail to load.
+
 ### 0.2.1
 
 - Updated to only load up to 5MB of a log file, ordered latest first, to ensure the file is load-able.
