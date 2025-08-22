@@ -43,6 +43,10 @@ No known issues. This extension is new, so please create an issue if you encount
 
 ## Release Notes
 
+### 0.2.3
+
+- Significantly speed up the time it takes to load small log files, while still supporting large log files.
+
 ### 0.2.2
 
 - Fixed a bug where a small log file would fail to load.

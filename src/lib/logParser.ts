@@ -56,24 +56,39 @@ export interface LogContent {
 }
 
 export function getLogContent(filePath: string): LogContent {
-  // Open the file
+  // Get the file stats first to determine file size
+  const stats = fs.statSync(filePath);
+
+  // For small files, read the entire file for better performance
+  if (stats.size <= MAX_BYTES_TO_READ) {
+    console.log("Reading entire file");
+
+    const contents = fs.readFileSync(filePath, "utf8");
+    return {
+      contents,
+      fileSize: stats.size,
+    };
+  }
+
+  console.log("Reading last " + MAX_BYTES_TO_READ + " bytes");
+
+  // For large files, read only the last MAX_BYTES_TO_READ bytes
   const fd = fs.openSync(filePath, "r");
 
-  // Get the file stats
-  const stats = fs.fstatSync(fd);
+  try {
+    // Calculate the position to start reading from the end
+    const position = stats.size - MAX_BYTES_TO_READ;
 
-  // Calculate the position to start reading from the end
-  const position = stats.size - MAX_BYTES_TO_READ > 0 ? stats.size - MAX_BYTES_TO_READ : 0;
+    // Read from the calculated position
+    const buffer = Buffer.alloc(MAX_BYTES_TO_READ);
+    fs.readSync(fd, buffer, 0, MAX_BYTES_TO_READ, position);
 
-  // Read from the calculated position
-  const buffer = Buffer.alloc(MAX_BYTES_TO_READ);
-  fs.readSync(fd, buffer, 0, MAX_BYTES_TO_READ, position);
-
-  // Close the file descriptor
-  fs.closeSync(fd);
-
-  return {
-    contents: buffer.toString(),
-    fileSize: stats.size,
-  };
+    return {
+      contents: buffer.toString(),
+      fileSize: stats.size,
+    };
+  } finally {
+    // Always close the file descriptor
+    fs.closeSync(fd);
+  }
 }
