@@ -18,7 +18,5 @@ export default async function handle(context: vscode.ExtensionContext) {
     return;
   }
 
-  const fileName = path.basename(document.fileName);
-
-  setUpPanel(context, "Log to Table - " + document.fileName, () => getLogContent(fileName));
+  setUpPanel(context, "Log to Table - " + document.fileName, () => getLogContent(document.fileName));
 }
