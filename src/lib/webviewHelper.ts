@@ -18,7 +18,7 @@ function generateWebviewContent(webview: vscode.Webview, context: vscode.Extensi
     {
       placeholder: "${alpineUri}",
       value: webview
-        .asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "media", "assets", "alpine.min.js")))
+        .asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, "node_modules", "alpinejs", "dist", "cdn.min.js")))
         .toString(),
     },
     {
@@ -39,7 +39,10 @@ function generateWebviewContent(webview: vscode.Webview, context: vscode.Extensi
 export function setUpPanel(context: vscode.ExtensionContext, title: string, fetchLogs: () => LogContent) {
   const panel = vscode.window.createWebviewPanel("logViewer", title, vscode.ViewColumn.One, {
     enableScripts: true,
-    localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
+    localResourceRoots: [
+      vscode.Uri.joinPath(context.extensionUri, "media"),
+      vscode.Uri.joinPath(context.extensionUri, "node_modules"),
+    ],
     retainContextWhenHidden: true,
   });
 
