@@ -41,51 +41,9 @@ No known issues. This extension is new, so please create an issue if you encount
 - Add a 'Per Page' option.
 - ...any suggestions made on GitHub (make an issue if you have a request!)
 
-## Release Notes
+## Changelog
 
-### 1.0.0
-
-- Fixed an issue with the `log-viewer.formatLogs` action that was causing the log to not be found.
-- Better integrate the AlpineJS dependancy by using npm to manage it.
- 
-### 0.2.3
-
-- Significantly speed up the time it takes to load small log files, while still supporting large log files.
-
-### 0.2.2
-
-- Fixed a bug where a small log file would fail to load.
-
-### 0.2.1
-
-- Updated to only load up to 5MB of a log file, ordered latest first, to ensure the file is load-able.
-  - Perhaps this could be overridden in the settings in future?
-
-### 0.2.0
-
-- Rebranded the Laravel Log Viewer extension to 'Log to Table', now we support any `.log` file formats.
-- Added the ability to create your own regex patterns to match different Log Files, and save these new pattern matches.
-  - Related to issue https://github.com/Nathanjms/laravel-log-viewer-extension/issues/1
-  - We may want to have a set of 'defaults' here, let me know if you have feedback!
-- Added a refresh button to update the table when a new log is added to the file.
-- Severities are now a dropdown instead of freetext.
-- Added a manu bar button to open a .log file as a table.
-
-### 0.1.1
-
-- Fix README gifs not loading
-
-### 0.1.0
-
-- Added a second command which finds you `.log` files for you and let's you open any of them.
-- Added menu button when in `.log` file to open the log as a table.
-- Styling updates for better handling of expanding a log message.
-- Option to view expanded log message wrapped or unwrapped.
-- Copy to clipboard button.
-
-### 0.0.1
-
-Initial release of the extension. Command to open a laravel .log file in a table format.
+See [CHANGELOG.md](CHANGELOG.md) for a complete history of releases and changes.
 
 ---
 
