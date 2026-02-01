@@ -43,6 +43,11 @@ No known issues. This extension is new, so please create an issue if you encount
 
 ## Release Notes
 
+### 1.0.0
+
+- Fixed an issue with the `log-viewer.formatLogs` action that was causing the log to not be found.
+- Better integrate the AlpineJS dependancy by using npm to manage it.
+ 
 ### 0.2.3
 
 - Significantly speed up the time it takes to load small log files, while still supporting large log files.
