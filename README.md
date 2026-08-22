@@ -59,6 +59,14 @@ The `Run Extension` launch configuration starts an Extension Development Host fo
 3. Publish with `npx vsce publish`.
 4. Push a matching `vX.Y.Z` tag to create the GitHub release and attach its VSIX automatically.
 
+### Open VSX
+
+For the first release, follow the [Open VSX publisher setup](https://github.com/eclipse-openvsx/wiki/Publishing-Extensions) to sign the publisher agreement, create an access token, and create the `nathanjames` namespace. For each release, generate the package with `npm run package`, then upload the resulting `.vsix`:
+
+```sh
+npx ovsx publish <extension.vsix> -p <token>
+```
+
 ## Support
 
 Report bugs and feature requests on the [GitHub issue tracker](https://github.com/Nathanjms/log-to-table-extension/issues). For security reports, see [SECURITY.md](SECURITY.md).
