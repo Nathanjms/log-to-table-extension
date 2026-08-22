@@ -1,56 +1,68 @@
 # Log to Table (Laravel & More)
 
-View your Log files in a easy-to-read table, with filters and pagination. Works with Laravel logs out the box, with the ability to add more regex patterns for other .log files.
+View log files in a searchable, paginated table directly in VS Code. Laravel logs work out of the box, and custom named-group regex patterns can support other formats.
 
-## Commands:
+## Commands
 
-- `Log to Table: Find and Open Log`
-  - Can be ran from anywhere. This command identifies any `.log` files and lists them, then lets you pick one to open.
-- `Log to Table: View as Table`
-  - Can be ran from any `.log` file. This command will open the file in the table format.
+- `Log to Table: Find and Open Log` finds `.log` files in the current workspace and lets you choose one.
+- `Log to Table: View as Table` opens the active `.log` file in the table viewer.
 
 ## Features
 
-- Find and list your `.log` files automatically and open them directly in a table.
-- Easy to navigate table, with pagination and filters to search on date, severity and message
-- Add custom regex to match different log formats, no longer just Laravel!
-- ...more to come (make an issue if you have a request!)
+- Laravel log parsing, including multiline stack traces.
+- Timestamp, severity, and message filters.
+- Pagination and full-message dialogs with optional wrapping.
+- Refresh without reopening the viewer.
+- Custom log formats saved across sessions.
+- Large-file protection: only the final 5 MB is loaded.
 
-### A button (and command) to open when you are in a `.log` file:
+![Open the active log as a table](images/button-demo.gif)
 
-![First Demo](images/button-demo.gif)
+![Find and open a workspace log](images/find-log-command.gif)
 
-### A command to search and find all .log files in your Workspace, and open any of them into the table:
+## Custom Formats
 
-![Second Demo](images/find-log-command.gif)
+Custom patterns must be safe regular expressions with the named groups `timestamp`, `severity`, and `text`.
 
-## Extension Settings
+For a comma-separated format:
 
-Currently there are no setting to configure.
+```regex
+^(?<timestamp>[^,]+),(?<severity>[^,]+),(?<text>.*)$
+```
 
-## Known Issues
+Saved names and patterns are stored in VS Code global state and included in Settings Sync when sync is enabled. Log contents remain local and are not transmitted by this extension.
 
-No known issues. This extension is new, so please create an issue if you encounter any issues, or have any feedback!
+## Compatibility
 
-## Future Plans
-
-- Add support for any regex pattern, not just Laravel Logs.
-- Advanced searching/filtering on the log.
-- Better pagination (eg. add 'First' and 'Last').
-- Allow click-through to the file in a log message.
-- Add a 'Per Page' option.
-- ...any suggestions made on GitHub (make an issue if you have a request!)
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a complete history of releases and changes.
-
----
+- VS Code 1.93 or newer.
+- Desktop VS Code, including remote extension hosts with file-backed workspaces.
+- Web-only environments such as vscode.dev are not currently supported.
 
 ## Development
 
-When in VS Code, use the built-in Run and Debug functionality to run the `Run Extension` task, to test.
+Use Node.js 24 and npm.
 
-## Publishing
+```sh
+npm ci
+npm test
+npm run package
+```
 
-1. Run `npx @vscode/vsce publish` to publish the extension.
+`npm test` compiles, lints, and runs the extension tests. Set `VSCODE_VERSION=1.93.0` to test the minimum supported VS Code version; the default is current stable.
+
+The `Run Extension` launch configuration starts an Extension Development Host for manual testing.
+
+## Releasing
+
+1. Update `CHANGELOG.md` and the version in `package.json`.
+2. Run `npm test` and `npm run package`.
+3. Publish with `npx vsce publish`.
+4. Push a matching `vX.Y.Z` tag to create the GitHub release and attach its VSIX automatically.
+
+## Support
+
+Report bugs and feature requests on the [GitHub issue tracker](https://github.com/Nathanjms/log-to-table-extension/issues). For security reports, see [SECURITY.md](SECURITY.md).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.

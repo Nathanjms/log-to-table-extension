@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { setUpPanel } from "../lib/webviewHelper";
-import path from "path";
 import { getLogContent } from "../lib/logParser";
 
 export default async function handle(context: vscode.ExtensionContext) {
@@ -18,5 +17,5 @@ export default async function handle(context: vscode.ExtensionContext) {
     return;
   }
 
-  setUpPanel(context, "Log to Table - " + document.fileName, () => getLogContent(document.fileName));
+  await setUpPanel(context, `Log to Table - ${document.fileName}`, () => getLogContent(document.uri.fsPath));
 }

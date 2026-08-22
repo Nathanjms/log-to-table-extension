@@ -5,6 +5,28 @@ All notable changes to the Log to Table extension are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-22
+
+### Added
+- Added parser, file-reading, and extension activation tests.
+- Added CI across the minimum and current VS Code versions.
+- Added automated dependency updates, VSIX artifacts, and tagged GitHub releases.
+- Added strict webview content security policy and responsive table styling.
+
+### Fixed
+- Fixed log file selection on Windows and encoded paths.
+- Fixed large-file metadata after refresh.
+- Fixed stale errors, pagination state, and out-of-order refresh responses.
+- Fixed malformed webview HTML and disabled button bindings.
+- Preserved blank lines in multiline log entries and UTF-8 boundaries in large-file tails.
+- Added validation for custom regex safety and required named groups.
+
+### Changed
+- Updated TypeScript, ESLint, VS Code test tooling, Alpine CSP, and packaging dependencies.
+- Made log file access asynchronous to avoid blocking the extension host.
+- Reduced the packaged extension to runtime files only.
+- Corrected repository and marketplace documentation links.
+
 ## [1.0.0] - 2026-02-01
 
 ### Fixed
