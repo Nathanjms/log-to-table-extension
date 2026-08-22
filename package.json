@@ -5,21 +5,28 @@
   "icon": "images/logo.png",
   "author": "Nathan James <nathan@nathanjms.co.uk>",
   "publisher": "nathanjames",
-  "homepage": "https://github.com/Nathanjms/laravel-log-viewer-extension#readme",
+  "homepage": "https://github.com/Nathanjms/log-to-table-extension#readme",
   "bugs": {
-    "url": "https://github.com/Nathanjms/laravel-log-viewer-extension/issues"
+    "url": "https://github.com/Nathanjms/log-to-table-extension/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nathanjms/laravel-log-viewer-extension.git"
+    "url": "git+https://github.com/Nathanjms/log-to-table-extension.git"
   },
   "license": "MIT",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.93.0"
   },
   "categories": [
+    "Visualization",
     "Other"
+  ],
+  "keywords": [
+    "logs",
+    "laravel",
+    "viewer",
+    "table"
   ],
   "main": "./out/extension.js",
   "activationEvents": [],
@@ -45,25 +52,29 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "vscode:prepublish": "npm run check",
+    "compile": "tsc -p .",
+    "watch": "tsc --watch -p .",
+    "lint": "eslint src media/assets/logViewer.js --max-warnings=0",
+    "check": "npm run compile && npm run lint",
+    "pretest": "npm run check",
+    "test": "vscode-test",
+    "package": "vsce package"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.93.0",
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.2.2",
-    "eslint": "^9.39.2",
-    "typescript": "^5.7.2"
+    "@types/mocha": "10.0.10",
+    "@types/node": "20.19.43",
+    "@types/vscode": "1.93.0",
+    "@typescript-eslint/eslint-plugin": "8.67.0",
+    "@typescript-eslint/parser": "8.67.0",
+    "@vscode/test-cli": "0.0.15",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "3.9.2",
+    "eslint": "10.9.0",
+    "typescript": "6.0.3"
   },
   "dependencies": {
-    "alpinejs": "^3.15.6"
+    "@alpinejs/csp": "3.16.2",
+    "safe-regex2": "5.1.1"
   }
 }

@@ -1,3 +1,6 @@
+const vscode = acquireVsCodeApi();
+const savedState = vscode.getState() ?? {};
+
 document.addEventListener("alpine:init", () => {
   Alpine.data("logViewer", () => logViewer);
 });
@@ -11,31 +14,29 @@ dialog.addEventListener("click", (event) => {
   dialog.close();
 });
 
-const vscode = acquireVsCodeApi();
 const logViewer = {
   logs: [],
-  filters: { timestamp: "", severity: "", message: "" },
+  filters: savedState.filters ?? { timestamp: "", severity: "", message: "" },
   severities: [],
   filteredLogs: [],
   loading: true,
   loadingError: "",
   fileSize: 0,
   limitInBytes: 0,
-  page: 1,
-  pageSize: 50,
-  indexToShow: null,
+  page: savedState.page ?? 1,
+  pageSize: savedState.pageSize ?? 50,
+  requestId: savedState.requestId ?? 0,
   copy: {
     isLoading: false,
-    success: false,
   },
-  modalText: "",
   modal: {
     text: "",
-    wrap: false,
+    wrap: savedState.modalWrap ?? false,
   },
   regex: {
-    patterns: [],
+    patterns: {},
     test: "",
+    testName: "",
     set: null,
   },
   get totalPages() {
@@ -52,6 +53,9 @@ const logViewer = {
   get noFiltersApplied() {
     return Object.values(this.filters).every((value) => !value);
   },
+  get hasSavedPatterns() {
+    return Object.keys(this.regex.patterns).length > 0;
+  },
   get hasMore() {
     return this.fileSize > this.limitInBytes;
   },
@@ -59,25 +63,39 @@ const logViewer = {
     window.addEventListener("message", (event) => {
       const message = event.data;
       if (message.command === "loadLogs") {
-        this.loading = false;
-        if (message.error) {
-          // Set error message?
-          this.loadingError = message.message;
+        if (message.requestId !== this.requestId) {
           return;
         }
 
+        this.loading = false;
+        if (message.error) {
+          this.loadingError = message.message;
+          this.logs = [];
+          this.filteredLogs = [];
+          return;
+        }
+
+        this.loadingError = "";
         this.logs = message.logs;
         this.severities = message.severities;
         this.regex.set = message.regexPattern ?? null;
-        this.filteredLogs = [...this.logs];
         this.limitInBytes = message.limitInBytes;
         this.fileSize = message.fileSize;
+        this.applyFilters(false);
+        this.page = Math.min(this.page, this.totalPages);
+        this.persistState();
       } else if (message.command === "loadStore") {
         this.regex.patterns = message.store.regexPatterns;
       }
     });
+
+    vscode.postMessage({
+      type: "command",
+      command: "ready",
+      parameters: { requestId: this.requestId },
+    });
   },
-  applyFilters() {
+  applyFilters(resetPage = true) {
     this.filteredLogs = this.logs.filter((log) => {
       return (
         (!this.filters.timestamp || log.timestamp.includes(this.filters.timestamp)) &&
@@ -85,28 +103,61 @@ const logViewer = {
         (!this.filters.message || log.text.toLocaleUpperCase().includes(this.filters.message.toLocaleUpperCase()))
       );
     });
-    this.page = 1;
+    if (resetPage) {
+      this.page = 1;
+    }
+    this.persistState();
   },
   nextPage() {
     if (this.page < this.totalPages) {
       this.page++;
+      this.persistState();
     }
   },
   prevPage() {
     if (this.page > 1) {
       this.page--;
+      this.persistState();
     }
   },
-  showDetails(idx) {
-    if (this.indexToShow === idx) {
-      this.indexToShow = null;
-    } else {
-      this.indexToShow = idx;
+  firstPage() {
+    this.page = 1;
+    this.persistState();
+  },
+  lastPage() {
+    this.page = this.totalPages;
+    this.persistState();
+  },
+  setPageSize() {
+    this.pageSize = Number(this.pageSize);
+    this.page = 1;
+    this.persistState();
+  },
+  clearFilters() {
+    for (const key in this.filters) {
+      this.filters[key] = "";
     }
+    this.applyFilters();
+  },
+  severityClass(severity) {
+    const normalizedSeverity = severity.toLocaleUpperCase();
+    if (["EMERGENCY", "ALERT", "CRITICAL", "ERROR"].includes(normalizedSeverity)) {
+      return "severity-error";
+    }
+    if (["WARNING", "WARN"].includes(normalizedSeverity)) {
+      return "severity-warning";
+    }
+    if (["INFO", "NOTICE"].includes(normalizedSeverity)) {
+      return "severity-info";
+    }
+    if (normalizedSeverity === "DEBUG") {
+      return "severity-debug";
+    }
+    return "severity-default";
   },
   formatMessage(message) {
-    if (message.length > 100) {
-      return message.substring(0, 100) + "...";
+    if (message.length > 180) {
+      return message.substring(0, 180) + "...";
     } else {
       return message;
     }
@@ -117,7 +168,7 @@ const logViewer = {
       await navigator.clipboard.writeText(text);
       // Send message to vs code:
       vscode.postMessage({ type: "info", message: "Copied to clipboard" });
-    } catch (error) {
+    } catch {
       vscode.postMessage({ type: "error", message: "Failed to copy to clipboard" });
     } finally {
       this.copy.isLoading = false;
@@ -131,17 +182,24 @@ const logViewer = {
     document.querySelector("dialog").close();
     this.modal.text = "";
   },
+  toggleWrap() {
+    this.modal.wrap = !this.modal.wrap;
+    this.persistState();
+  },
   async refresh(parameters = {}) {
     this.loading = true;
-    // Clear all filters:
-    for (const key in this.filters) {
-      this.filters[key] = "";
-    }
+    this.loadingError = "";
+    this.page = 1;
+    this.requestId++;
 
-    vscode.postMessage({ type: "command", command: "refresh", parameters });
+    this.persistState();
+    vscode.postMessage({
+      type: "command",
+      command: "refresh",
+      parameters: { ...parameters, requestId: this.requestId },
+    });
   },
   changeFormat(pattern = null) {
-    // Send a refresh request with the pattern as a parameter
     this.refresh({ pattern: pattern || this.regex.test });
   },
   saveTestRegex() {
@@ -169,5 +227,14 @@ const logViewer = {
       unitIndex++;
     }
     return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+  },
+  persistState() {
+    vscode.setState({
+      filters: this.filters,
+      page: this.page,
+      pageSize: this.pageSize,
+      requestId: this.requestId,
+      modalWrap: this.modal.wrap,
+    });
   },
 };

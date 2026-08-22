@@ -1,199 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; base-uri 'none'; form-action 'none';"
+    >
     <title>Log Viewer</title>
-    <link rel="stylesheet" href="${styleUri}" />
-    <script src="${logViewerUri}" defer></script></head>
-    <script src="${alpineUri}" defer></script></head>
+    <style nonce="${nonce}">${styles}</style>
+    <script nonce="${nonce}" src="${logViewerUri}" defer></script>
+    <script nonce="${nonce}" src="${alpineUri}" defer></script>
   </head>
   <body>
-    <div x-data="logViewer">
-      <template x-if="!loading && !hasNoLogs && regex.test && !regex.patterns[regex.test]">
-        <div class="card" style="margin-bottom: 10px">
-          <div>
-            <span style="margin-bottom: 10px;">This regex has returned logs! Provide a name below to save this format:</span>
-            <form style="margin-block: 10px;" @submit.prevent="saveTestRegex()">
-              <div style="display: flex; gap: 10px">
-                <input style="flex-grow: 1;" type="text" placeholder="Regex Name" x-model="regex.testName" />
-                <button v-bind:disabled="!regex.testName || loading" type="submit">
-                  <span x-text="loading ? 'Loading...' : 'Apply'"></span>
-                </button>
-                <button type="button" @click="regex.test = ''">Cancel</button>
-              </div>
-              <span>
-                Is this a standard regex pattern for log files? Suggest it as a default option on the
-                <a href="https://github.com/Nathanjms/laravel-log-viewer-extension/issues/new?template=Blank+issue">Github Page</a>
-              </span>
-            </form>
-          </div>
+    <main class="viewer-shell" x-data="logViewer">
+      <header class="viewer-header">
+        <div>
+          <span class="eyebrow">Log viewer</span>
+          <h1>Log entries</h1>
+          <p>Newest entries first. Filter the loaded portion of the file without changing its contents.</p>
         </div>
-      </template>
-      <template x-if="!loading && !hasNoLogs && hasMore">
-        <div class="card" style="margin-bottom: 10px">
-            <span style="margin-bottom: 10px;">
-              Note: Only the last <span x-text="bytesToHumanReadable(limitInBytes)"></span> of the 
-                <span x-text="bytesToHumanReadable(fileSize)"></span> log file has been loaded for performance reasons.
-            </span>
+        <div class="header-stats" aria-live="polite">
+          <span class="stat"><strong x-text="filteredLogs.length"></strong> shown</span>
+          <span class="stat"><strong x-text="logs.length"></strong> loaded</span>
         </div>
-      </template>
-      <form class="controls" @submit.prevent="applyFilters">
-        <input x-bind:disabled="loading" type="text" placeholder="Timestamp" x-model="filters.timestamp" />
-        <select x-bind:disabled="loading" x-model="filters.severity">
-          <option value="">All</option>
-          <template x-for="severity in severities" :key="severity">
-            <option x-text="severity"></option>
-          </template>
-        </select>
-        <input x-bind:disabled="loading" type="text" placeholder="Message" x-model="filters.message" />
-        <button x-bind:disabled="loading" @click="applyFilters()">Search</button>
-        <button x-bind:disabled="loading" @click="refresh({ pattern: regex.set })" title="refresh">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+      </header>
+
+      <template x-if="!loading && !loadingError && hasMore">
+        <aside class="notice" role="status">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M12 9v4m0 4h.01M10.3 3.8 2.4 17.5A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.5L13.7 3.8a2 2 0 0 0-3.4 0Z" />
           </svg>
-        </button>
-      </form>
-      <div x-show="loading" class="loading">
-        <div class="spinner"></div>
-        <span>Loading logs...</span>
-      </div>
-      <div x-show="!loading && loadingError">
-        <span x-text="loadingError"></span>
-      </div>
-      <table x-show="!loading">
-        <thead>
-          <tr>
-            <th width="20%">Timestamp</th>
-            <th width="10%">Severity</th>
-            <th width="55%">Message</th>
-            <th width="15%"></th>
-          </tr>
-        </thead>
-        <tbody x-show="hasNoLogs">
-          <tr>
-            <td style="text-align: center" colspan="4">No logs found.</td>
-          </tr>
-        </tbody>
-        <template x-if="!hasNoLogs">
-          <tbody>
-            <template x-for="(log, idx) in pageLogs" :key="idx">
-              <tr>
-                <td x-text="log.timestamp"></td>
-                <td x-text="log.severity"></td>
-                <td>
-                  <span x-text="formatMessage(log.text)"></span>
-                </td>
-                <td>
-                  <button @click="openModal(log.text)" title="Show Details">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="size-6"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                      />
-                    </svg>
-                  </button>
-                  <button x-bind:disabled="copy.isLoading" @click="copyToClipboard(log.text)" title="Copy">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="size-6"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
-                      />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </template>
-      </table>
-      <div class="pagination">
-        <button @click="prevPage" x-bind:disabled="page === 1">Previous</button>
-        <span x-text="`Page ${page} of ${totalPages}`"></span>
-        <button @click="nextPage" x-bind:disabled="page === totalPages">Next</button>
-      </div>
-      <template x-if="!loading && hasNoLogs && noFiltersApplied">
-        <div class="card" style="margin-top: 20px">
-          <div>
-            <span>Expecting to see logs here? The log file may not be in the expected format</span>
-            <div style="margin-top: 10px;" x-show="Object.keys(regex.patterns).length > 0">
-              Choose from one of the Saved Formats:
-              <table class="small">
-                <thead>
-                  <th>Name</th>
-                  <th>Actions</th>
-                </thead>
-                <tbody>
-                  <template x-for="(name, pattern) in regex.patterns" :key="pattern">
-                    <tr>
-                      <td x-text="name"></td>
-                      <td>
-                        <div style="text-align: end;">
-                          <button class="small" @click="changeFormat(pattern)" title="Apply">Apply</button>
-                          <button class="small secondary" @click="deletePattern(pattern)" title="Delete">Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
-            </div>
-            <hr />
-            <span style="margin-bottom: 10px;">Alternatively, you can test with another format below:</span>
-            <form style="margin-block: 10px;" @submit.prevent="changeFormat()">
-              <div style="display: flex; gap: 10px">
-                <input style="flex-grow: 1;" type="text" placeholder="Format" x-model="regex.test" />
-                <button v-bind:disabled="!regex.test || loading" type="submit">
-                  <span x-text="loading ? 'Loading...' : 'Apply'"></span>
-                </button>
-              </div>
-              <small>
-                The Regex needs to have 3 groups: timestamp, severity, text. An example regex for a comma separated format would be
-                <i>^(?&lt;timestamp&gt;.*?),(?&lt;severity&gt;.*?),(?&lt;text&gt;.*?)$</i>
-              </small>
-              <div style="margin-top: 10px">
-                If you need more help here, or if this a Laravel Log, please raise an issue on the
-                  <a href="https://github.com/Nathanjms/laravel-log-viewer-extension/issues/new?template=Blank+issue">Github Page</a>
-              </div>
-            </form>
-          </div>
-        </div>
+          <span>
+            Showing the final <strong x-text="bytesToHumanReadable(limitInBytes)"></strong> of this
+            <strong x-text="bytesToHumanReadable(fileSize)"></strong> file.
+          </span>
+        </aside>
       </template>
-      <dialog>
-        <div id="modal" style="width: 100%; height: 100%">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 10px">
-            <div>
-              <button x-bind:disabled="copy.isLoading" @click="copyToClipboard(modal.text)" title="Copy">Copy</button>
-              <button @click="() => (modal.wrap = !modal.wrap)" title="Wrap">
-                <span x-text="modal.wrap ? 'Disable' : 'Enable'"></span>
-                Wrap
-              </button>
-            </div>
-            <div>
-              <button class="secondary" @click="closeModal()">Close</button>
-            </div>
-          </div>
+
+      <template x-if="!loading && !loadingError && !hasNoLogs && regex.test && !regex.patterns[regex.test]">
+        <section class="panel save-format-panel">
           <div>
-            <pre class="code" x-bind:class="{wrap: modal.wrap}" x-text="modal.text"></pre>
+            <h2>Custom format matched</h2>
+            <p>Name this format to reuse it in other log files.</p>
           </div>
+          <form class="inline-form" @submit.prevent="saveTestRegex()">
+            <label class="sr-only" for="regex-name">Format name</label>
+            <input id="regex-name" type="text" placeholder="Format name" x-model="regex.testName">
+            <button class="primary" x-bind:disabled="!regex.testName || loading" type="submit">Save format</button>
+            <button class="secondary" type="button" @click="regex.test = ''">Dismiss</button>
+          </form>
+        </section>
+      </template>
+
+      <section class="panel filter-panel" aria-labelledby="filter-heading">
+        <div class="panel-heading">
+          <div>
+            <h2 id="filter-heading">Filters</h2>
+            <p>Search within the entries currently loaded.</p>
+          </div>
+          <button class="secondary compact" type="button" x-bind:disabled="noFiltersApplied || loading" @click="clearFilters()">
+            Clear filters
+          </button>
+        </div>
+
+        <form class="filter-grid" @submit.prevent="applyFilters">
+          <label class="field">
+            <span>Timestamp</span>
+            <input x-bind:disabled="loading" type="text" placeholder="2026-08-22" x-model="filters.timestamp">
+          </label>
+          <label class="field">
+            <span>Severity</span>
+            <select x-bind:disabled="loading" x-model="filters.severity">
+              <option value="">All severities</option>
+              <template x-for="severity in severities" :key="severity">
+                <option x-text="severity"></option>
+              </template>
+            </select>
+          </label>
+          <label class="field field-message">
+            <span>Message</span>
+            <input x-bind:disabled="loading" type="text" placeholder="Search message text" x-model="filters.message">
+          </label>
+          <div class="filter-actions">
+            <button class="primary" x-bind:disabled="loading" type="submit">Apply filters</button>
+            <button
+              class="icon-button"
+              x-bind:disabled="loading"
+              type="button"
+              @click="refresh({ pattern: regex.set })"
+              title="Refresh log file"
+              aria-label="Refresh log file"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path d="M20 11a8.1 8.1 0 0 0-14.9-4M4 4v5h5m-5 4a8.1 8.1 0 0 0 14.9 4M20 20v-5h-5" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <template x-if="loading">
+        <section class="state-panel" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <h2>Loading log entries</h2>
+          <p>Reading and parsing the latest file contents.</p>
+        </section>
+      </template>
+
+      <template x-if="!loading && loadingError">
+        <section class="state-panel error-state" role="alert">
+          <div class="state-icon">!</div>
+          <h2>Could not load this log</h2>
+          <p x-text="loadingError"></p>
+          <button class="secondary" type="button" @click="refresh({ pattern: regex.set })">Try again</button>
+        </section>
+      </template>
+
+      <template x-if="!loading && !loadingError && !hasNoLogs">
+        <section class="results" aria-label="Log entries">
+          <div class="results-toolbar">
+            <p>
+              <strong x-text="filteredLogs.length"></strong>
+              <span x-text="filteredLogs.length === 1 ? 'entry' : 'entries'"></span>
+            </p>
+            <label class="page-size">
+              <span>Rows per page</span>
+              <select x-model.number="pageSize" @change="setPageSize()">
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th class="timestamp-column">Timestamp</th>
+                  <th class="severity-column">Severity</th>
+                  <th>Message</th>
+                  <th class="actions-column"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(log, idx) in pageLogs" :key="idx">
+                  <tr>
+                    <td class="timestamp-cell" data-label="Timestamp" x-text="log.timestamp"></td>
+                    <td data-label="Severity">
+                      <span class="severity-badge" x-bind:class="severityClass(log.severity)" x-text="log.severity"></span>
+                    </td>
+                    <td class="message-cell" data-label="Message">
+                      <span x-text="formatMessage(log.text)"></span>
+                    </td>
+                    <td class="row-actions" data-label="Actions">
+                      <div class="row-action-buttons">
+                        <button class="icon-button ghost" type="button" @click="openModal(log.text)" title="Show full message" aria-label="Show full message">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                            <path d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5M3 8l6-5m6 0 6 5M3 16l6 5m6 0 6-5" />
+                          </svg>
+                        </button>
+                        <button class="icon-button ghost" type="button" x-bind:disabled="copy.isLoading" @click="copyToClipboard(log.text)" title="Copy message" aria-label="Copy message">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                            <path d="M9 8h10v12H9zM5 16H4V4h10v1" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <nav class="pagination" aria-label="Log pages">
+            <button class="secondary compact" type="button" @click="firstPage()" x-bind:disabled="page === 1">First</button>
+            <button class="secondary compact" type="button" @click="prevPage()" x-bind:disabled="page === 1">Previous</button>
+            <span class="page-status">Page <strong x-text="page"></strong> of <strong x-text="totalPages"></strong></span>
+            <button class="secondary compact" type="button" @click="nextPage()" x-bind:disabled="page === totalPages">Next</button>
+            <button class="secondary compact" type="button" @click="lastPage()" x-bind:disabled="page === totalPages">Last</button>
+          </nav>
+        </section>
+      </template>
+
+      <template x-if="!loading && !loadingError && hasNoLogs && !noFiltersApplied">
+        <section class="state-panel">
+          <div class="state-icon search-icon">?</div>
+          <h2>No matching entries</h2>
+          <p>Try broadening the timestamp, severity, or message filters.</p>
+          <button class="secondary" type="button" @click="clearFilters()">Clear filters</button>
+        </section>
+      </template>
+
+      <template x-if="!loading && !loadingError && hasNoLogs && noFiltersApplied">
+        <section class="panel format-panel">
+          <div class="format-intro">
+            <span class="eyebrow">No entries matched</span>
+            <h2>Choose another log format</h2>
+            <p>The file may not use Laravel's default format. Apply a saved pattern or test a custom regular expression.</p>
+          </div>
+
+          <template x-if="hasSavedPatterns">
+            <div class="saved-formats">
+              <h3>Saved formats</h3>
+              <div class="saved-format-list">
+                <template x-for="(name, pattern) in regex.patterns" :key="pattern">
+                  <div class="saved-format-row">
+                    <span x-text="name"></span>
+                    <div>
+                      <button class="secondary compact" type="button" @click="changeFormat(pattern)">Apply</button>
+                      <button class="ghost danger compact" type="button" @click="deletePattern(pattern)">Delete</button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <form class="regex-form" @submit.prevent="changeFormat()">
+            <label class="field">
+              <span>Custom regex</span>
+              <input type="text" placeholder="^(?<timestamp>...),..." x-model="regex.test">
+            </label>
+            <button class="primary" x-bind:disabled="!regex.test || loading" type="submit">Test format</button>
+          </form>
+          <p class="form-help">
+            Requires named groups for <code>timestamp</code>, <code>severity</code>, and <code>text</code>.
+            <a href="https://github.com/Nathanjms/log-to-table-extension/issues/new">Get help on GitHub</a>.
+          </p>
+        </section>
+      </template>
+
+      <dialog aria-labelledby="dialog-title">
+        <div class="modal-content">
+          <div class="modal-toolbar">
+            <div>
+              <span class="eyebrow">Selected entry</span>
+              <h2 id="dialog-title">Full message</h2>
+            </div>
+            <button class="icon-button ghost" type="button" @click="closeModal()" title="Close" aria-label="Close dialog">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>
+          </div>
+          <div class="modal-actions">
+            <button class="secondary compact" type="button" x-bind:disabled="copy.isLoading" @click="copyToClipboard(modal.text)">Copy message</button>
+            <button class="secondary compact" type="button" @click="toggleWrap()" aria-label="Toggle message wrapping">
+              <span x-text="modal.wrap ? 'Disable wrap' : 'Enable wrap'"></span>
+            </button>
+          </div>
+          <pre class="code" x-bind:class="{wrap: modal.wrap}" x-text="modal.text"></pre>
         </div>
       </dialog>
-    </div>
+    </main>
   </body>
 </html>

@@ -1,33 +1,34 @@
 import * as vscode from "vscode";
-import fs from "fs";
-import path from "path";
 import { setUpPanel } from "../lib/webviewHelper";
 import { getLogContent } from "../lib/logParser";
 
 export default async function handle(context: vscode.ExtensionContext) {
-  const filePath = await findLogFiles();
-  if (!filePath) {
+  const fileUri = await findLogFiles();
+  if (!fileUri) {
     return;
   }
 
-  const fileName = path.basename(filePath);
-
-  // Create and display the Webview
-  setUpPanel(context, "Log to Table - " + fileName, () => getLogContent(filePath));
+  const fileName = fileUri.path.split("/").pop() ?? fileUri.path;
+  await setUpPanel(context, `Log to Table - ${fileName}`, () => getLogContent(fileUri.fsPath));
 }
 
-export async function findLogFiles() {
-  // exclude vendor folder and the node_modules folder:
+export async function findLogFiles(): Promise<vscode.Uri | undefined> {
   const logFiles = await vscode.workspace.findFiles("**/*.log", "**/{node_modules,vendor}/**");
   if (logFiles.length === 0) {
     vscode.window.showInformationMessage("No .log files found in the workspace.");
-    return null;
+    return undefined;
   }
 
   const selectedFile = await vscode.window.showQuickPick(
-    logFiles.map((file) => file.path).sort((a, b) => b.localeCompare(a)), // Sort desc
+    logFiles
+      .map((uri) => ({
+        label: uri.path.split("/").pop() ?? uri.path,
+        description: vscode.workspace.asRelativePath(uri),
+        uri,
+      }))
+      .sort((a, b) => b.description.localeCompare(a.description)),
     { placeHolder: "Select a log file to view" }
   );
 
-  return selectedFile;
+  return selectedFile?.uri;
 }

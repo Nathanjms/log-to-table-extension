@@ -3,7 +3,6 @@ import tsParser from "@typescript-eslint/parser";
 
 export default [{
     files: ["**/*.ts"],
-}, {
     plugins: {
         "@typescript-eslint": typescriptEslint,
     },
@@ -15,14 +14,32 @@ export default [{
     },
 
     rules: {
-        "@typescript-eslint/naming-convention": ["warn", {
-            selector: "import",
-            format: ["camelCase", "PascalCase"],
-        }],
-
-        curly: "warn",
-        eqeqeq: "warn",
-        "no-throw-literal": "warn",
-        semi: "warn",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "error",
+        "@typescript-eslint/no-unused-vars": "error",
+        curly: "error",
+        eqeqeq: "error",
+        "no-throw-literal": "error",
+        semi: "error",
+    },
+}, {
+    files: ["media/**/*.js"],
+    languageOptions: {
+        ecmaVersion: 2022,
+        sourceType: "script",
+        globals: {
+            acquireVsCodeApi: "readonly",
+            Alpine: "readonly",
+            document: "readonly",
+            navigator: "readonly",
+            window: "readonly",
+        },
+    },
+    rules: {
+        curly: "error",
+        eqeqeq: "error",
+        "no-undef": "error",
+        "no-unused-vars": "error",
+        semi: "error",
     },
 }];
