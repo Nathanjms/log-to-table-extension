@@ -65,16 +65,16 @@
     "@types/mocha": "10.0.10",
     "@types/node": "20.19.43",
     "@types/vscode": "1.93.0",
-    "@typescript-eslint/eslint-plugin": "8.67.0",
-    "@typescript-eslint/parser": "8.67.0",
+    "@typescript-eslint/eslint-plugin": "8.68.0",
+    "@typescript-eslint/parser": "8.68.0",
     "@vscode/test-cli": "0.0.15",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "3.9.2",
-    "eslint": "10.9.0",
+    "eslint": "10.9.1",
     "typescript": "6.0.3"
   },
   "dependencies": {
-    "@alpinejs/csp": "3.16.2",
+    "@alpinejs/csp": "3.16.3",
     "safe-regex2": "5.1.1"
   }
 }
